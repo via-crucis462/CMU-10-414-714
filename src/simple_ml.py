@@ -74,7 +74,15 @@ def softmax_loss(Z, y):
         所有样本的平均 softmax 损失。
     """
     ### BEGIN YOUR CODE
-    pass
+    sum = 0.0
+    for i in range(Z.shape[0]):
+        xi = Z[i]
+        yi = y[i]
+        hy = xi[yi]
+        log_sum_exp = np.log(np.sum(np.exp(xi)))
+        loss_i = -hy + log_sum_exp
+        sum += loss_i
+    return sum / Z.shape[0]
     ### END YOUR CODE
 
 
