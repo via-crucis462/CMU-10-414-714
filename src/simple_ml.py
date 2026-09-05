@@ -104,7 +104,24 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    num_examples = X.shape[0]
+    for start in range(0, num_examples, batch):
+        end = min(start + batch, num_examples)
+        X_batch = X[start:end]
+        y_batch = y[start:end]
+
+        logits = X_batch @ theta
+        exp_logits = np.exp(logits)
+        softmax_probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True) #axis表示沿哪个维度进行操作，1表示第二个维度，即列
+
+        one_hot_y = np.zeros_like(softmax_probs) # 创造一个与softmax_probs形状相同的全零数组
+        one_hot_y[np.arange(len(y_batch)), y_batch] = 1 
+
+        # one_hot_y[[0, 1, 2], [2, 0, 1]] = 1 高级索引
+        # 两两配对
+
+        gradient = X_batch.T @ (softmax_probs - one_hot_y) / len(y_batch)
+        theta -= lr * gradient
     ### END YOUR CODE
 
 
