@@ -384,42 +384,50 @@ class Tensor(Value):
 
 
 def compute_gradient_of_variables(output_tensor, out_grad):
-    """Take gradient of output node with respect to each node in node_list.
+    """计算输出节点关于 node_list 中每个节点的梯度。
 
-    Store the computed result in the grad field of each Variable.
+    将计算结果存储在每个 Variable 的 grad 字段中。
     """
-    # a map from node to a list of gradient contributions from each output node
+    # 从节点到“来自各个输出节点的梯度贡献列表”的映射
     node_to_output_grads_list: Dict[Tensor, List[Tensor]] = {}
-    # Special note on initializing gradient of
-    # We are really taking a derivative of the scalar reduce_sum(output_node)
-    # instead of the vector output_node. But this is the common case for loss function.
+    # 关于梯度初始化的特别说明：
+    # 我们实际上是对标量 reduce_sum(output_node) 求导，
+    # 而不是对向量 output_node 求导。但这是损失函数的常见情形。
     node_to_output_grads_list[output_tensor] = [out_grad]
 
-    # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
+    # 以输出节点为终点，按逆拓扑序遍历计算图
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     ### BEGIN YOUR SOLUTION
-    pass
+    
     ### END YOUR SOLUTION
 
 
 def find_topo_sort(node_list: List[Value]) -> List[Value]:
-    """Given a list of nodes, return a topological sort list of nodes ending in them.
+    """给定一个节点列表，返回以这些节点为终点的拓扑排序列表。
 
-    A simple algorithm is to do a post-order DFS traversal on the given nodes,
-    going backwards based on input edges. Since a node is added to the ordering
-    after all its predecessors are traversed due to post-order DFS, we get a topological
-    sort.
+    一种简单的算法是对给定节点做后序深度优先遍历，并沿输入边反向回溯。
+    由于在后序 DFS 中，一个节点会在其所有前驱节点都被遍历之后才被加入排序，
+    因此我们最终得到的就是拓扑排序。
     """
     ### BEGIN YOUR SOLUTION
-    pass
+    topo_order = []
+    visited = set()
+    for node in node_list:
+        topo_sort_dfs(node, visited, topo_order)
+    return topo_order
     ### END YOUR SOLUTION
 
 
 def topo_sort_dfs(node, visited, topo_order):
-    """Post-order DFS"""
+    """后序深度优先搜索"""
     ### BEGIN YOUR SOLUTION
-    pass
+    if node in visited: # 用visited效率高说是
+        return
+    for in_node in node.inputs:
+        topo_sort_dfs(in_node, visited, topo_order)
+    topo_order.append(node)
+    visited.add(node)
     ### END YOUR SOLUTION
 
 
