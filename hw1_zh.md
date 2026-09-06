@@ -88,29 +88,29 @@ python3 -m mugrade submit 'YOUR_GRADER_KEY_HERE' -k "forward"
 
 反向模式自动微分的总体目标，是计算某个下游函数 $\ell$（它依赖于 $f(x,y)$）关于 $x$（或 $y$）的梯度。形式化地说，我们希望计算：
 
-\begin{equation}
+$$
 \frac{\partial \ell}{\partial x} = \frac{\partial \ell}{\partial f(x,y)} \frac{\partial f(x,y)}{\partial x}.
-\end{equation}
+$$
 
 “传入的反向梯度”正是 $\frac{\partial \ell}{\partial f(x,y)}$，因此 `gradient()` 函数最终需要计算该反向梯度与函数自身关于 $x$ 的导数 $\frac{\partial f(x,y)}{\partial x}$ 的乘积。
 
 更具体地看，考虑前面介绍过的逐元素加法：
 
-\begin{equation}
+$$
 f(x,y) = x + y.
-\end{equation}
+$$
 
 假设 $x,y\in\mathbb{R}^n$，因此 $f(x,y) \in \mathbb{R}^n$。通过简单求导：
 
-\begin{equation}
+$$
 \frac{\partial f(x,y)}{\partial x} = 1
-\end{equation}
+$$
 
 于是：
 
-\begin{equation}
+$$
 \frac{\partial \ell}{\partial x} = \frac{\partial \ell}{\partial f(x,y)} \frac{\partial f(x,y)}{\partial x} = \frac{\partial \ell}{\partial f(x,y)}
-\end{equation}
+$$
 
 也就是说，关于第一个参数 $x$ 的导数与传入的反向梯度完全相同。关于第二个参数 $y$ 也是如此。这正是 `EWiseAdd` 运算符中以下方法所表达的含义：
 
@@ -123,33 +123,33 @@ f(x,y) = x + y.
 
 再考虑逐元素乘法：
 
-\begin{equation}
+$$
 f(x,y) = x \circ y
-\end{equation}
+$$
 
 其中 $\circ$ 表示逐元素乘法。该函数的偏导数为：
 
-\begin{equation}
+$$
 \frac{\partial f(x,y)}{\partial x} = y
-\end{equation}
+$$
 
 以及：
 
-\begin{equation}
+$$
 \frac{\partial f(x,y)}{\partial y} = x
-\end{equation}
+$$
 
 因此，关于 $x$ 的梯度为：
 
-\begin{equation}
+$$
 \frac{\partial \ell}{\partial x} = \frac{\partial \ell}{\partial f(x,y)} \frac{\partial f(x,y)}{\partial x} = \frac{\partial \ell}{\partial f(x,y)} \cdot y
-\end{equation}
+$$
 
 如果和上一个例子一样，$x,y \in \mathbb{R}^n$，那么 $f(x,y) \in \mathbb{R}^n$，因此梯度函数返回的第一个元素就是逐元素乘法：
 
-\begin{equation}
+$$
 \frac{\partial \ell}{\partial f(x,y)} \circ y
-\end{equation}
+$$
 
 这正是 `EWiseMul` 类的 `gradient()` 调用所表达的含义：
 
@@ -186,9 +186,9 @@ class EWiseMul(TensorOp):
 
 再次强调，可以通过数值梯度检查验证反向传播是否正确。正如课堂中介绍的：
 
-\begin{equation}
+$$
 \delta^T \nabla_\theta f(\theta) = \frac{f(\theta + \epsilon \delta) - f(\theta - \epsilon \delta)}{2 \epsilon} + o(\epsilon^2)
-\end{equation}
+$$
 
 我们在 `tests/test_autograd.py` 中提供了用于数值检查的 `gradient_check` 函数。
 
@@ -249,9 +249,9 @@ python3 -m mugrade submit 'YOUR_GRADER_KEY_HERE' -k "compute_gradient"
 
 本题要求实现 `apps/simple_ml.py` 中定义的 `softmax_loss()` 函数。它与 HW0 问题 3 中的 softmax 损失类似，但这次输入的是 logits 的 `Tensor` 和真实标签 one-hot 编码的 `Tensor`。回顾一下，对于取值为 $y \in \{1,\ldots,k\}$ 的多分类输出，softmax 损失接收 logits 向量 $z \in \mathbb{R}^k$、真实类别 $y \in \{1,\ldots,k\}$（在本函数中以 one-hot 向量表示），并返回：
 
-\begin{equation}
+$$
 \ell_{\mathrm{softmax}}(z, y) = \log\sum_{i=1}^k \exp z_i - z_y.
-\end{equation}
+$$
 
 首先，你需要实现另一个运算符 `log` 的前向和反向传播。
 
@@ -278,15 +278,15 @@ python3 -m mugrade submit 'YOUR_GRADER_KEY_HERE' -k "softmax_loss_ndl"
 
 具体来说，对于输入 $x \in \mathbb{R}^n$，考虑如下不带偏置的两层神经网络：
 
-\begin{equation}
+$$
 z = W_2^T \mathrm{ReLU}(W_1^T x)
-\end{equation}
+$$
 
 其中 $W_1 \in \mathbb{R}^{n \times d}$ 和 $W_2 \in \mathbb{R}^{d \times k}$ 是网络权重（网络具有 $d$ 维隐藏单元），$z \in \mathbb{R}^k$ 是网络输出的 logits。我们仍然使用 softmax / 交叉熵损失，因此希望求解以下优化问题。这里将记号扩展到 batch 形式，输入矩阵为 $X \in \mathbb{R}^{m \times n}$：
 
-\begin{equation}
+$$
 \min_{W_1, W_2} \;\; \ell_{\mathrm{softmax}}(\mathrm{ReLU}(X W_1) W_2, y).
-\end{equation}
+$$
 
 首先，你需要实现 `relu` 运算符的前向和反向传播。
 
