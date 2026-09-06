@@ -112,7 +112,7 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
 
         logits = X_batch @ theta
         exp_logits = np.exp(logits)
-        softmax_probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True) #axis表示沿哪个维度进行操作，1表示第二个维度，即列
+        softmax_probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True) #axis表示沿哪个维度进行操作，1表示第二个维度，即行
 
         one_hot_y = np.zeros_like(softmax_probs) # 创造一个与softmax_probs形状相同的全零数组
         one_hot_y[np.arange(len(y_batch)), y_batch] = 1 
@@ -146,7 +146,26 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    num_examples = X.shape[0]
+    for start in range(0, num_examples, batch):
+        end = min(start + batch , num_examples)
+        X_batch = X[start:end]
+        y_batch = y[start:end]
+
+        # 前向传播
+        hidden = np.maximum(X_batch @ W1, 0)
+        logits = hidden @ W2
+        S = np.exp(logits) / np.sum(np.exp(logits), axis=1, keepdims=True)
+        I = np.zeros_like(S)
+        I[np.arange(len(y_batch)), y_batch] = 1
+
+        # 反向传播
+        grad_logits = (S - I) / len(y_batch)
+        grad_W2 = hidden.T @ grad_logits
+        grad_W1 = X_batch.T @ (grad_logits @ W2.T * (X_batch @ W1 > 0))
+        W1 -= lr * grad_W1
+        W2 -= lr * grad_W2
+
     ### END YOUR CODE
 
 
