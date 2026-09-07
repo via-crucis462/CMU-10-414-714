@@ -88,7 +88,7 @@ class Op:
     def gradient_as_tuple(self, out_grad: "Value", node: "Value") -> Tuple["Value"]:
         """ Convenience method to always return a tuple from gradient call"""
         output = self.gradient(out_grad, node)
-        if isinstance(output, tuple):
+        if isinstance(output, tuple):   # 判断类型
             return output
         elif isinstance(output, list):
             return tuple(output)
@@ -399,7 +399,21 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     ### BEGIN YOUR SOLUTION
-    
+    for i in reverse_topo_order:
+        # 计算节点 i 的梯度
+        out_grad = sum_node_list(node_to_output_grads_list[i])
+        # 判断是否是倒过来的叶子节点，如果是叶子节点就直接赋值给 grad
+        if i.is_leaf():
+            i.grad = out_grad
+        else:
+            # 对每个输入求其梯度
+            input_grads = i.op.gradient_as_tuple(out_grad, i)
+
+            # 将对应梯度放到对应的输入节点的梯度列表中
+            for j, in_node in enumerate(i.inputs):
+                if in_node not in node_to_output_grads_list:
+                    node_to_output_grads_list[in_node] = []
+                node_to_output_grads_list[in_node].append(input_grads[j])
     ### END YOUR SOLUTION
 
 
