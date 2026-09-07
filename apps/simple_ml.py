@@ -30,7 +30,20 @@ def parse_mnist(image_filesname, label_filename):
                 for MNIST will contain the values 0-9.
     """
     ### BEGIN YOUR SOLUTION
-    pass
+    with gzip.open(image_filesname, 'rb') as f:
+        magic, num_images, rows, cols = struct.unpack('>IIII', f.read(16))
+        image_data = np.frombuffer(f.read(), dtype=np.uint8)
+    
+    with gzip.open(label_filename, 'rb') as f:
+        magic_y, num_labels = struct.unpack('>II', f.read(8))
+        label_data = np.frombuffer(f.read(), dtype=np.uint8)
+    
+    if num_images != num_labels:
+        raise ValueError("Image count and label count do not match")
+    
+    X = image_data.reshape(num_images, rows * cols).astype(np.float32) / 255.0
+    y = label_data.astype(np.uint8)
+    return X, y
     ### END YOUR SOLUTION
 
 
@@ -51,7 +64,13 @@ def softmax_loss(Z, y_one_hot):
         Average softmax loss over the sample. (ndl.Tensor[np.float32])
     """
     ### BEGIN YOUR SOLUTION
-    pass
+    n = Z.shape[0]  # batch_size
+    # 每行的 log-sum-exp，得到 (n,) 向量: log(sum_j exp(Z_ij))
+    row_logsumexp = ndl.ops.log(ndl.ops.summation(ndl.ops.exp(Z), axes=(1,)))
+    # 取每个样本真实类别对应的 logit: sum_j Z_ij * y_one_hot_ij
+    correct_logit = ndl.ops.summation(Z * y_one_hot, axes=(1,))
+    # 平均 softmax loss
+    return ndl.ops.summation(row_logsumexp - correct_logit) / n
     ### END YOUR SOLUTION
 
 
