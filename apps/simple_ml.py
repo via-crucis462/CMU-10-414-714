@@ -99,7 +99,34 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
     """
 
     ### BEGIN YOUR SOLUTION
-    pass
+    num_examples = X.shape[0]
+    for i in range(0, num_examples, batch):
+        start, end = i, min(i + batch, num_examples)
+
+        X_batch = ndl.Tensor(X[start:end])          # (batch, n)
+        Y_batch = y[start:end]                       # numpy 标签 (batch,)
+
+        # 1. 前向：直接用你已实现好的函数
+        hidden = ndl.ops.relu(X_batch @ W1)
+        logits = hidden @ W2
+
+        # 2. 把 Y_batch 转成 one-hot 的 Tensor
+        y_one_hot = np.zeros((Y_batch.shape[0], logits.shape[1]))  # 类别数 = logits 的列数！
+        y_one_hot[np.arange(Y_batch.shape[0]), Y_batch] = 1
+        y_one_hot = ndl.Tensor(y_one_hot)
+
+        # 3. 用 softmax_loss 算 loss（它是可微的，内部自动连着计算图）
+        loss = softmax_loss(logits, y_one_hot)
+
+        # 4. 反向自动微分
+        loss.backward()
+
+        # 5. 取梯度，用 NumPy 更新，创建新的 W1、W2 Tensor
+        W1 = ndl.Tensor(W1.numpy() - lr * W1.grad.numpy())
+        W2 = ndl.Tensor(W2.numpy() - lr * W2.grad.numpy())
+
+    return W1, W2
+
     ### END YOUR SOLUTION
 
 

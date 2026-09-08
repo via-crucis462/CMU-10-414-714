@@ -297,12 +297,12 @@ def exp(a):
 class ReLU(TensorOp):
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        pass
+        return array_api.maximum(a, 0)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        pass
+        return out_grad * (node.inputs[0].realize_cached_data() > 0)
         ### END YOUR SOLUTION
 
 
