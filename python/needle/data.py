@@ -27,7 +27,10 @@ class RandomFlipHorizontal(Transform):
         """
         flip_img = np.random.rand() < self.p
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if flip_img:
+            # Flip along the width axis (axis=1): reverse column order, keep rows & channels.
+            return np.flip(img, axis=1)
+        return img
         ### END YOUR SOLUTION
 
 
@@ -45,7 +48,9 @@ class RandomCrop(Transform):
         """
         shift_x, shift_y = np.random.randint(low=-self.padding, high=self.padding+1, size=2)
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        img_pad = np.pad(img, [(self.padding, self.padding), (self.padding, self.padding), (0, 0)], 'constant')
+        H, W, _ = img_pad.shape
+        return img_pad[self.padding + shift_x: H - self.padding + shift_x, self.padding + shift_y: W - self.padding + shift_y, :]
         ### END YOUR SOLUTION
 
 
@@ -104,13 +109,26 @@ class DataLoader:
 
     def __iter__(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if self.shuffle:
+            order = np.random.permutation(len(self.dataset))
+            self.ordering = np.array_split(
+                order, range(self.batch_size, len(self.dataset), self.batch_size)
+            )
+        self.index = 0
         ### END YOUR SOLUTION
         return self
 
     def __next__(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if self.index >= len(self.ordering):
+            raise StopIteration
+
+        indices = self.ordering[self.index]
+        self.index += 1
+        samples = [self.dataset[int(i)] for i in indices]
+        batch_x = np.stack([sample[0] for sample in samples], axis=0)
+        batch_y = np.asarray([sample[1] for sample in samples])
+        return Tensor(batch_x), Tensor(batch_y)
         ### END YOUR SOLUTION
 
 
@@ -122,17 +140,26 @@ class MNISTDataset(Dataset):
         transforms: Optional[List] = None,
     ):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        super().__init__(transforms)
+        self.images, self.labels = parse_mnist(image_filename, label_filename)
         ### END YOUR SOLUTION
 
     def __getitem__(self, index) -> object:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        image = self.images[index]
+        label = self.labels[index]
+
+        if self.transforms is not None:
+            image = image.reshape((28, 28, 1))
+            image = self.apply_transforms(image)
+            image = image.reshape(image.shape[0] * image.shape[1] * image.shape[2])
+
+        return image, label
         ### END YOUR SOLUTION
 
     def __len__(self) -> int:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return self.images.shape[0]
         ### END YOUR SOLUTION
 
 class NDArrayDataset(Dataset):
@@ -144,3 +171,42 @@ class NDArrayDataset(Dataset):
 
     def __getitem__(self, i) -> object:
         return tuple([a[i] for a in self.arrays])
+
+def parse_mnist(image_filesname, label_filename):
+    """ Read an images and labels file in MNIST format.  See this page:
+    http://yann.lecun.com/exdb/mnist/ for a description of the file format.
+
+    Args:
+        image_filename (str): name of gzipped images file in MNIST format
+        label_filename (str): name of gzipped labels file in MNIST format
+
+    Returns:
+        Tuple (X,y):
+            X (numpy.ndarray[np.float32]): 2D numpy array containing the loaded
+                data.  The dimensionality of the data should be
+                (num_examples x input_dim) where 'input_dim' is the full
+                dimension of the data, e.g., since MNIST images are 28x28, it
+                will be 784.  Values should be of type np.float32, and the data
+                should be normalized to have a minimum value of 0.0 and a
+                maximum value of 1.0.
+
+            y (numpy.ndarray[dypte=np.int8]): 1D numpy array containing the
+                labels of the examples.  Values should be of type np.int8 and
+                for MNIST will contain the values 0-9.
+    """
+    ### BEGIN YOUR SOLUTION
+    with gzip.open(image_filesname, 'rb') as f:
+        magic, num_images, rows, cols = struct.unpack('>IIII', f.read(16))
+        image_data = np.frombuffer(f.read(), dtype=np.uint8)
+    
+    with gzip.open(label_filename, 'rb') as f:
+        magic_y, num_labels = struct.unpack('>II', f.read(8))
+        label_data = np.frombuffer(f.read(), dtype=np.uint8)
+    
+    if num_images != num_labels:
+        raise ValueError("Image count and label count do not match")
+    
+    X = image_data.reshape(num_images, rows * cols).astype(np.float32) / 255.0
+    y = label_data.astype(np.uint8)
+    return X, y
+    ### END YOUR SOLUTION
