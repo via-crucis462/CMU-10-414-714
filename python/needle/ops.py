@@ -366,12 +366,34 @@ class LogSumExp(TensorOp):
 
     def compute(self, Z):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        max_z = array_api.max(Z, axis=self.axes, keepdims=True)
+        sum_exp = array_api.sum(
+            array_api.exp(Z - max_z),
+            axis=self.axes,
+            keepdims=True,
+        )
+        result = array_api.log(sum_exp) + max_z
+
+        if self.axes is None:
+            return array_api.sum(result)
+        return array_api.squeeze(result, axis=self.axes) #删除长度为1的数组
+
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        input_shape = node.inputs[0].shape
+        axes = (
+            tuple(range(len(input_shape)))
+            if self.axes is None
+            else ((self.axes,) if isinstance(self.axes, int) else self.axes)
+        )
+        reduced_shape = tuple(
+            1 if axis in axes else size for axis, size in enumerate(input_shape)
+        )
+        output_grad = reshape(out_grad, reduced_shape)
+        output = reshape(node, reduced_shape)
+        return output_grad * exp(node.inputs[0] - output)
         ### END YOUR SOLUTION
 
 

@@ -61,7 +61,7 @@ ___
 按照论文 [Understanding the difficulty of training deep feedforward neural networks](https://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf) 中描述的方法，使用正态分布填充输入张量。生成的张量将从 $\mathcal{N}(0, \text{std}^2)$ 中采样，其中
 
 $$
-	ext{std} = \text{gain} \times \sqrt{\frac{2}{\text{fan\_in} + \text{fan\_out}}}
+    ext{std} = \text{gain} \times \sqrt{\frac{2}{\text{fan\_in} + \text{fan\_out}}}
 $$
 
 ##### 参数
@@ -77,7 +77,7 @@ ___
 按照论文 [Delving deep into rectifiers: Surpassing human-level performance on ImageNet classification](https://arxiv.org/pdf/1502.01852.pdf) 中描述的方法，使用均匀分布填充输入张量。生成的张量将从 $\mathcal{U}(-\text{bound}, \text{bound})$ 中采样，其中
 
 $$
-	ext{bound} = \text{gain} \times \sqrt{\frac{3}{\text{fan\_in}}}
+    ext{bound} = \text{gain} \times \sqrt{\frac{3}{\text{fan\_in}}}
 $$
 
 对 ReLU 使用推荐的增益值：$\text{gain}=\sqrt{2}$。
@@ -124,7 +124,7 @@ ___
 ### Linear
 `needle.nn.Linear(in_features, out_features, bias=True, device=None, dtype="float32")`
 
-对输入数据应用线性变换：$y = xA^T + b$。输入形状为 $(N, H_{in})$，其中 $H_{in}=\text{in_features}$。输出形状为 $(N, H_{out})$，其中 $H_{out}=\text{out_features}$。
+对输入数据应用线性变换：$y = xA^T + b$。输入形状为 $(N, H_{in})$，其中 $H_{in}=\text{in\_features}$。输出形状为 $(N, H_{out})$，其中 $H_{out}=\text{out\_features}$。
 
 务必小心地将偏置项显式广播到正确的形状——Needle 不支持隐式广播。
 
