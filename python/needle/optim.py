@@ -28,7 +28,12 @@ class SGD(Optimizer):
 
     def step(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for w in self.params:
+            grad = w.grad.data
+            if self.weight_decay > 0:
+                grad = grad + self.weight_decay * w.data
+            self.u[w] = self.momentum * self.u[w] + (1 - self.momentum) * grad
+            w.data = w.data + (-self.lr) * self.u[w]
         ### END YOUR SOLUTION
 
 
@@ -55,5 +60,14 @@ class Adam(Optimizer):
 
     def step(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        self.t += 1
+        for w in self.params:
+            grad = w.grad.data
+            if self.weight_decay > 0:
+                grad = grad + self.weight_decay * w.data
+            self.m[w] = self.beta1 * self.m[w] + (1 - self.beta1) * grad
+            self.v[w] = self.beta2 * self.v[w] + (1 - self.beta2) * (grad ** 2)
+            m_hat = self.m[w] / (1 - self.beta1 ** self.t)
+            v_hat = self.v[w] / (1 - self.beta2 ** self.t)
+            w.data = w.data - self.lr * m_hat / (v_hat ** 0.5 + self.eps)
         ### END YOUR SOLUTION
